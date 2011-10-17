@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * Copyright © 2007 Xarax <jodeldi@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,12 +21,54 @@
 /**
  * inspired by djvuimage from Brion Vibber
  * modified and written by xarax
+ * then modified by Vitaliy Filippov
  */
 
 class PdfImage {
 
+	const BUFSIZE = 2048;
+
 	function __construct( $filename ) {
 		$this->mFilename = $filename;
+	}
+
+	/**
+	 * Extract CropBox or MediaBox, if no CropBox is present,
+	 * for each page of PDF file $filename, respecting Rotation
+	 */
+	public static function extractPageSizes( $filename ) {
+		$fp = fopen( $filename, "rb" );
+		if ( !$fp ) {
+			return false;
+		}
+		$buf = '';
+		$line = '';
+		$pages = array();
+		while( ( $buf = fread( $fp, self::BUFSIZE ) ) !== '' ) {
+			$line .= $buf;
+			$lines = explode( "endobj", $line );
+			$line = array_pop( $lines );
+			foreach( $lines as $s ) {
+				if ( preg_match( '/Rotate\s+(\d+)/', $s, $m ) ) {
+					$landscape = $m[1] == 90 || $m[1] == 270 ? 1 : 0;
+				} else {
+					$landscape = 0;
+				}
+				if ( preg_match( '/CropBox\s*\[([^\]]*\s*)([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s*\]/', $s, $m ) ) {
+					$pages[] = array(
+						'width' => intval( $m[ 4 + $landscape ] - $m[ 2 + $landscape ] ),
+						'height' => intval( $m[ 5 - $landscape ] - $m[ 3 - $landscape ] ),
+					);
+				} elseif ( preg_match( '/MediaBox\s*\[[^\]]*\s+([\d\.]+)\s+([\d\.]+)\s*\]/', $s, $m ) ) {
+					$pages[] = array(
+						'width' => intval( $m[ 1 + $landscape ] ),
+						'height' => intval( $m[ 2 - $landscape ] ),
+					);
+				}
+			}
+		}
+		fclose( $fp );
+		return $pages;
 	}
 
 	public function isValid() {
@@ -47,51 +88,25 @@ class PdfImage {
 		return false;
 	}
 
+	/**
+	 * Get page size from retrieved metadata array for page $page
+	 */
 	public static function getPageSize( $data, $page ) {
-		global $wgPdfHandlerDpi;
-
-		if( isset( $data['pages'][$page]['Page size'] ) ) {
-			$o = $data['pages'][$page]['Page size'];
-		} elseif( isset( $data['Page size'] ) ) {
-			$o = $data['Page size'];
-		} else {
-			$o = false;
+		if( isset( $data['pages'][$page-1] ) ) {
+			return array(
+				'width' => $data['pages'][$page-1]['width'],
+				'height' => $data['pages'][$page-1]['height'],
+			);
 		}
-
-		if ( $o ) {
-			$size = explode( 'x', $o, 2 );
-
-			if ( $size ) {
-				$width  = intval( trim( $size[0] ) / 72 * $wgPdfHandlerDpi );
-				$height = explode( ' ', trim( $size[1] ), 2 );
-				$height = intval( trim( $height[0] ) / 72 * $wgPdfHandlerDpi );
-
-				return array(
-					'width' => $width,
-					'height' => $height
-				);
-			}
-		}
-
 		return false;
 	}
 
 	public function retrieveMetaData() {
-		global $wgPdfInfo, $wgPdftoText;
+		global $wgPdftoText;
 
-		if ( $wgPdfInfo ) {
-			wfProfileIn( 'pdfinfo' );
-			$cmd = wfEscapeShellArg( $wgPdfInfo ) .
-				" -enc UTF-8 " . # Report metadata as UTF-8 text...
-				" -l 9999999 " . # Report page sizes for all pages
-				wfEscapeShellArg( $this->mFilename );
-			$retval = '';
-			$dump = wfShellExec( $cmd, $retval );
-			$data = $this->convertDumpToArray( $dump );
-			wfProfileOut( 'pdfinfo' );
-		} else {
-			$data = null;
-		}
+		# Retrieve CropBoxes manually, do not use pdfinfo,
+		# as it doesn't respect page rotation
+		$data = array( 'pages' => self::extractPageSizes( $this->mFilename ) );
 
 		# Read text layer
 		if ( isset( $wgPdftoText ) ) {
@@ -110,30 +125,6 @@ class PdfImage {
 					$pages[$page] = UtfNormal::cleanUp( $pageText );
 				}
 				$data['text'] = $pages;
-			}
-		}
-		return $data;
-	}
-
-	protected function convertDumpToArray( $dump ) {
-		if ( strval( $dump ) == '' ) {
-			return false;
-		}
-
-		$lines = explode( "\n", $dump );
-		$data = array();
-
-		foreach( $lines as $line ) {
-			$bits = explode( ':', $line, 2 );
-			if( count( $bits ) > 1 ) {
-				$key = trim( $bits[0] );
-				$value = trim( $bits[1] );
-				$matches = array();
-				if( preg_match( '/^Page +(\d+) size$/', $key, $matches ) ) {
-					$data['pages'][$matches[1]]['Page size'] = $value;
-				} else {
-					$data[$key] = $value;
-				}
 			}
 		}
 		return $data;

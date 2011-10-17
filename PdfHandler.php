@@ -38,21 +38,20 @@ $wgExtensionCredits['media'][] = array(
 );
 
 // External program requirements...
-$wgPdfProcessor     = 'gs';
-$wgPdfPostProcessor = 'convert';
-$wgPdfInfo          = 'pdfinfo';
-$wgPdftoText        = 'pdftotext';
+if ( !isset( $wgPdfProcessor ) ) $wgPdfProcessor = 'gs';
+if ( !isset( $wgPdftoText ) ) $wgPdftoText = 'pdftotext';
 
-$wgPdfOutputExtension = 'jpg';
-$wgPdfHandlerDpi = 150;
+// GhostScript's output device name and file extension
+if ( !isset( $wgPdfOutputDevice ) ) $wgPdfOutputDevice = 'jpeg';
+if ( !isset( $wgPdfOutputExtension ) ) $wgPdfOutputExtension = 'jpg';
 
 // This setting, if enabled, will put creating thumbnails into a job queue,
 // so they do not have to be created on-the-fly,
 // but rather inconspicuously during normal wiki browsing
-$wgPdfCreateThumbnailsInJobQueue = false;
+if ( !isset( $wgPdfCreateThumbnailsInJobQueue ) ) $wgPdfCreateThumbnailsInJobQueue = false;
 
-// To upload new PDF files you'll need to do this too:
-// $wgFileExtensions[] = 'pdf';
+// Enable PDF upload by default. If you want to forbid PDF upload - do so in your LocalSettings.php
+$wgFileExtensions[] = 'pdf';
 
 $dir = dirname( __FILE__ ) . '/';
 $wgExtensionMessagesFiles['PdfHandler'] = $dir . 'PdfHandler.i18n.php';

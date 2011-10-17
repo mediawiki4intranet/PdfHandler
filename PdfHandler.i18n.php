@@ -85,14 +85,6 @@ $messages['bg'] = array(
 	'pdf_page_error' => 'Номерът на страница е извън обхвата',
 );
 
-/** Bengali (বাংলা)
- * @author Wikitanvir
- */
-$messages['bn'] = array(
-	'pdf_no_metadata' => 'পিডিএফ থেকে মেটাডেটা পাওয়া যায়নি',
-	'pdf_page_error' => 'পাতার নম্বর সীমার মধ্যে নেই',
-);
-
 /** Breton (Brezhoneg)
  * @author Fulup
  */
@@ -158,11 +150,10 @@ $messages['da'] = array(
 );
 
 /** German (Deutsch)
- * @author Kghbln
  * @author Raimond Spekking
  */
 $messages['de'] = array(
-	'pdf-desc' => 'Stellt eine Schnittstelle zur Ansicht von PDF-Dateien im Bildermodus bereit',
+	'pdf-desc' => 'Schnittstelle für die Ansicht von PDF-Dateien im Bilder-Modus',
 	'pdf_no_metadata' => 'Keine Metadaten im PDF vorhanden.',
 	'pdf_page_error' => 'Seitenzahl außerhalb des Dokumentes.',
 );
@@ -223,13 +214,12 @@ $messages['et'] = array(
 
 /** Persian (فارسی)
  * @author Ebraminio
- * @author Huji
  * @author Sahim
  * @author Wayiran
  */
 $messages['fa'] = array(
-	'pdf-desc' => 'گرداننده‌ای برای مشاهده فایل های پی‌دی‌اف در حالت تصویر',
-	'pdf_no_metadata' => 'نمی‌توان فراداده‌ها را از پی‌دی‌اف گرفت',
+	'pdf-desc' => 'متصدیای برای مشاهده فایل های پی‌دی‌اف در حالت تصویر',
+	'pdf_no_metadata' => 'نمی‌توان ابرداده‌ها را از پی‌دی‌اف گرفت',
 	'pdf_page_error' => 'شماره صفحه در محدوده نیست',
 );
 
@@ -458,7 +448,7 @@ $messages['mk'] = array(
  * @author Shijualex
  */
 $messages['ml'] = array(
-	'pdf-desc' => 'പി.ഡി.എഫ്. പ്രമാണങ്ങൾ ചിത്രരൂപത്തിൽ കാണുന്നതിനുള്ള കൈകാര്യോപകരണം',
+	'pdf-desc' => 'ചിത്ര രൂപത്തിൽ പി.ഡി.എഫ്. പ്രമാണങ്ങൾ കാണുന്നതിനുള്ള കൈകാര്യോപകരണം',
 	'pdf_no_metadata' => 'PDF-ൽ നിന്നു മെറ്റാഡാറ്റ ലഭിച്ചില്ല',
 	'pdf_page_error' => 'താളിന്റെ ക്രമസംഖ്യ പരിധിയിലധികമാണ്',
 );
@@ -470,15 +460,6 @@ $messages['mr'] = array(
 	'pdf-desc' => 'चित्र मोड मध्ये पीडीएफ संचिका पाहण्यासाठी आवश्यक प्रणाली',
 	'pdf_no_metadata' => 'पीडीएफ मधून मेटाडाटा घेऊ शकत नाही',
 	'pdf_page_error' => 'पान क्रमांक सीमेमध्ये नाही',
-);
-
-/** Malay (Bahasa Melayu)
- * @author Anakmalaysia
- */
-$messages['ms'] = array(
-	'pdf-desc' => 'Pengendali untuk melihat fail PDF dalam mod imej',
-	'pdf_no_metadata' => 'Metadata tidak boleh diperoleh dari PDF',
-	'pdf_page_error' => 'Nombor halaman tiada dalam julat',
 );
 
 /** Dutch (Nederlands)
@@ -517,15 +498,6 @@ $messages['oc'] = array(
 	'pdf_page_error' => 'Lo numèro de pagina es pas dins la gama.',
 );
 
-/** Oriya (ଓଡ଼ିଆ)
- * @author Psubhashish
- */
-$messages['or'] = array(
-	'pdf-desc' => 'PDF ଫାଇଲକୁ ଛବି ମୋଡ଼ରେ ଦେଖିବାର ପରିଚାଳକ',
-	'pdf_no_metadata' => 'ପି.ଡ଼ି.ଏଫ.ରୁ ମେଟାଡାଟା ବାହାର କରିପାରିଲୁଁ ନାହିଁ',
-	'pdf_page_error' => 'ପୃଷ୍ଠା ସଂଖ୍ୟା ସୀମା ଭିତରେ ନାହିଁ',
-);
-
 /** Deitsch (Deitsch)
  * @author Xqt
  */
@@ -550,15 +522,6 @@ $messages['pms'] = array(
 	'pdf-desc' => 'Ël gestor për vëdde ij file PDF an manera image',
 	'pdf_no_metadata' => 'as peulo nen pijesse ij metadat dal PDF',
 	'pdf_page_error' => "Ël nùmer ëd pàgina a l'é pa ant ël range",
-);
-
-/** Western Punjabi (پنجابی)
- * @author Khalid Mahmood
- */
-$messages['pnb'] = array(
-	'pdf-desc' => 'پی ڈی ایف  فائلاں امیج موڈ چ ویکھن لئی ہینڈلر',
-	'pdf_no_metadata' => 'پی ڈی ایف توں میٹاڈیٹا نئیں مل سکیا۔',
-	'pdf_page_error' => 'صفہ نمبر ولگن چ نئیں۔',
 );
 
 /** Portuguese (Português)
@@ -616,7 +579,7 @@ $messages['rue'] = array(
 	'pdf_page_error' => 'Чісло сторінкы не є в россягу',
 );
 
-/** Sakha (Саха тыла)
+/** Yakut (Саха тыла)
  * @author HalanTul
  */
 $messages['sah'] = array(
@@ -661,14 +624,13 @@ $messages['sq'] = array(
 	'pdf_page_error' => 'Numri i faqes nuk është në varg',
 );
 
-/** Serbian (Cyrillic script) (‪Српски (ћирилица)‬)
- * @author Rancher
+/** Serbian Cyrillic ekavian (‪Српски (ћирилица)‬)
  * @author Михајло Анђелковић
  */
 $messages['sr-ec'] = array(
-	'pdf-desc' => 'Програм за прегледање PDF докумената у сликовном режиму',
-	'pdf_no_metadata' => 'Не могу да преузмем метаподатке из PDF-а',
-	'pdf_page_error' => 'Број страница ван опсега',
+	'pdf-desc' => 'Хандлер за преглед PDF фајлова као слика',
+	'pdf_no_metadata' => 'Не могу се добити мета-подаци из PDF-а',
+	'pdf_page_error' => 'Број стране излази ван опсега',
 );
 
 /** Serbian Latin ekavian (‪Srpski (latinica)‬)
