@@ -25,13 +25,12 @@
 
 class PdfThumbnailImage extends ThumbnailImage {
 
-	var $startpage, $endpage, $pattern;
+	var $startpage, $endpage;
 
-	function __construct( $file, $url, $width, $height, $path, $page, $endpage, $urlpattern ) {
+	function __construct( $file, $url, $width, $height, $path, $page, $endpage ) {
 		parent::__construct( $file, $url, $width, $height, $path, $page );
 		$this->startpage = $page;
 		$this->endpage = $endpage;
-		$this->urlpattern = $urlpattern;
 	}
 
 	function toHtml( $options = array() ) {
@@ -39,10 +38,12 @@ class PdfThumbnailImage extends ThumbnailImage {
 			$options['custom-url-link'] = $this->file->getURL() . '#page=' . $this->page;
 		if ( $this->endpage > $this->startpage ) {
 			$html = '';
+			$urlpattern = $this->url;
 			for ( $this->page = $this->startpage; $this->page <= $this->endpage; $this->page++ ) {
-				$this->url = sprintf( $this->urlpattern, $this->page );
+				$this->url = sprintf( $urlpattern, $this->page );
 				$html .= parent::toHtml( $options )."\n";
 			}
+			$this->url = $urlpattern;
 			return $html;
 		}
 		return parent::toHtml( $options );
@@ -76,7 +77,7 @@ class PdfHandler extends ImageHandler {
 		if ( $name == 'width' || $name == 'height' ) {
 			return ( $value <= 0 ) ? false : true;
 		} elseif ( $name == 'page' ) {
-			return preg_match( '/^\d+(-\d+)?$/s', $value );
+			return preg_match( '/^\d*(-\d*)?$/s', $value );
 		} else {
 			return false;
 		}
@@ -87,13 +88,16 @@ class PdfHandler extends ImageHandler {
 		if ( !isset( $params['width'] ) ) {
 			return false;
 		}
+		if ( strpos( $page, '-' ) !== false ) {
+			$page = '%d';
+		}
 		return "page{$page}-{$params['width']}px";
 	}
 
 	function parseParamString( $str ) {
 		$m = false;
 
-		if ( preg_match( '/^page(\d+(?:-\d+)?)-(\d+)px$/', $str, $m ) ) {
+		if ( preg_match( '/^page(\d+|%d)-(\d+)px$/', $str, $m ) ) {
 			return array( 'width' => $m[2], 'page' => $m[1] );
 		}
 
@@ -139,6 +143,7 @@ class PdfHandler extends ImageHandler {
 			if ( $endpage === '' ) {
 				$endpage = $n;
 			}
+			$dstUrl = str_replace( '%25d', '%d', $dstUrl );
 		} else {
 			$endpage = $page;
 		}
@@ -156,17 +161,9 @@ class PdfHandler extends ImageHandler {
 		$height = $params['height'];
 		$srcPath = $image->getPath();
 
-		if ( $endpage > $page ) {
-			$dstPattern = preg_replace( '#page\d+-\d+-#', 'page%d-', $dstPath );
-			$urlPattern = preg_replace( '#page\d+-\d+-#', 'page%d-', $dstUrl );
-		} else {
-			$dstPattern = $dstPath;
-			$urlPattern = false;
-		}
-
 		if ( $flags & self::TRANSFORM_LATER ) {
 			return new PdfThumbnailImage( $image, $dstUrl, $width,
-							$height, $dstPath, $page, $endpage, $urlPattern );
+							$height, $dstPath, $page, $endpage );
 		}
 
 		if ( !wfMkdirParents( dirname( $dstPath ), null, __METHOD__ ) ) {
@@ -176,7 +173,7 @@ class PdfHandler extends ImageHandler {
 		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
 
 		$doRename = false;
-		$dst = $dstPattern;
+		$dst = $dstPath;
 		if ( strlen( $dst ) > 255 ) {
 			# GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes
 			# Workaround it by renaming files from temporary directory
@@ -202,7 +199,7 @@ class PdfHandler extends ImageHandler {
 			for ( $i = $page; $i <= $endpage; $i++ ) {
 				$tmp = sprintf( $dst, $i );
 				if ( file_exists( $tmp ) ) {
-					rename( $tmp, sprintf( $dstPattern, $i ) );
+					rename( $tmp, sprintf( $dstPath, $i ) );
 				}
 			}
 		}
@@ -215,7 +212,7 @@ class PdfHandler extends ImageHandler {
 				wfHostname(), $retval, trim( $err ), $cmd ) );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
 		} else {
-			return new PdfThumbnailImage( $image, $dstUrl, $width, $height, $dstPath, $page, $endpage, $urlPattern );
+			return new PdfThumbnailImage( $image, $dstUrl, $width, $height, $dstPath, $page, $endpage );
 		}
 	}
 
