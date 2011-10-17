@@ -45,6 +45,11 @@ if ( !isset( $wgPdftoText ) ) $wgPdftoText = 'pdftotext';
 if ( !isset( $wgPdfOutputDevice ) ) $wgPdfOutputDevice = 'jpeg';
 if ( !isset( $wgPdfOutputExtension ) ) $wgPdfOutputExtension = 'jpg';
 
+// Now PdfHandler selects output DPI by itself, based on requested image size
+// If you want more quality, specify a power of 2 here.
+// Generated images will be downscaled by browser.
+if ( !isset( $wgPdfDpiRatio ) ) $wgPdfDpiRatio = 2;
+
 // This setting, if enabled, will put creating thumbnails into a job queue,
 // so they do not have to be created on-the-fly,
 // but rather inconspicuously during normal wiki browsing

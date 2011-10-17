@@ -120,7 +120,7 @@ class PdfHandler extends ImageHandler {
 	}
 
 	function doTransform( $image, $dstPath, $dstUrl, $params, $flags = 0 ) {
-		global $wgPdfProcessor, $wgPdfOutputDevice;
+		global $wgPdfProcessor, $wgPdfOutputDevice, $wgPdfDpiRatio;
 
 		$metadata = $image->getMetadata();
 
@@ -173,7 +173,7 @@ class PdfHandler extends ImageHandler {
 			return $this->doThumbError( $width, $height, 'thumbnail_dest_directory' );
 		}
 
-		$dpi = $this->getPageDPIForWidth( $image, $page, $width ) * 2;
+		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
 
 		$cmd = "$wgPdfProcessor -dUseCropBox -dTextAlphaBits=4 -dGraphicsAlphaBits=4".
 			" -sDEVICE=$wgPdfOutputDevice -sOutputFile=" . wfEscapeShellArg( $dstPattern ) .
