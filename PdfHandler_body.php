@@ -40,7 +40,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 			$html = '';
 			$urlpattern = $this->url;
 			for ( $this->page = $this->startpage; $this->page <= $this->endpage; $this->page++ ) {
-				$this->url = sprintf( $urlpattern, $this->page );
+				$this->url = str_replace( '$N', $this->page, $urlpattern );
 				$html .= parent::toHtml( $options )."\n";
 			}
 			$this->url = $urlpattern;
@@ -89,7 +89,7 @@ class PdfHandler extends ImageHandler {
 			return false;
 		}
 		if ( strpos( $page, '-' ) !== false ) {
-			$page = '%d';
+			$page = '$N';
 		}
 		return "page{$page}-{$params['width']}px";
 	}
@@ -97,7 +97,7 @@ class PdfHandler extends ImageHandler {
 	function parseParamString( $str ) {
 		$m = false;
 
-		if ( preg_match( '/^page(\d+|%d)-(\d+)px$/', $str, $m ) ) {
+		if ( preg_match( '/^page(\d+|\$N)-(\d+)px$/', $str, $m ) ) {
 			return array( 'width' => $m[2], 'page' => $m[1] );
 		}
 
@@ -143,7 +143,7 @@ class PdfHandler extends ImageHandler {
 			if ( $endpage === '' ) {
 				$endpage = $n;
 			}
-			$dstUrl = str_replace( '%25d', '%d', $dstUrl );
+			$dstUrl = str_replace( 'page%24N', 'page$N', $dstUrl );
 		} else {
 			$endpage = $page;
 		}
@@ -173,7 +173,7 @@ class PdfHandler extends ImageHandler {
 		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
 
 		$doRename = false;
-		$dst = $dstPath;
+		$dst = str_replace( '$N', '%d', $dstPath );
 		if ( strlen( $dst ) > 255 ) {
 			# GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes
 			# Workaround it by renaming files from temporary directory
@@ -199,7 +199,7 @@ class PdfHandler extends ImageHandler {
 			for ( $i = $page; $i <= $endpage; $i++ ) {
 				$tmp = sprintf( $dst, $i );
 				if ( file_exists( $tmp ) ) {
-					rename( $tmp, sprintf( $dstPath, $i ) );
+					rename( $tmp, str_replace( '$N', $i, $dstPath ) );
 				}
 			}
 		}
