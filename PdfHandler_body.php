@@ -175,8 +175,19 @@ class PdfHandler extends ImageHandler {
 
 		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
 
+		$doRename = false;
+		$dst = $dstPattern;
+		if ( strlen( $dst ) > 255 ) {
+			# GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes
+			# Workaround it by renaming files from temporary directory
+			$dst = tempnam( wfTempDir(), 'pdf-' );
+			if ( $endpage > $page ) {
+				$dst .= '%d';
+			}
+			$doRename = true;
+		}
 		$cmd = "$wgPdfProcessor -dUseCropBox -dTextAlphaBits=4 -dGraphicsAlphaBits=4".
-			" -sDEVICE=$wgPdfOutputDevice -sOutputFile=" . wfEscapeShellArg( $dstPattern ) .
+			" -sDEVICE=$wgPdfOutputDevice " . wfEscapeShellArg( "-sOutputFile=$dst" ) .
 			" -dFirstPage=$page -dLastPage=$endpage -r$dpi -dSAFER -dBATCH -dNOPAUSE -q " .
 			wfEscapeShellArg( $srcPath ) . " 2>&1";
 
@@ -185,6 +196,16 @@ class PdfHandler extends ImageHandler {
 		$retval = '';
 		$err = wfShellExec( $cmd, $retval );
 		wfProfileOut( 'PdfHandler' );
+
+		if ( $doRename ) {
+			# Second part of GhostScript workaround
+			for ( $i = $page; $i <= $endpage; $i++ ) {
+				$tmp = sprintf( $dst, $i );
+				if ( file_exists( $tmp ) ) {
+					rename( $tmp, sprintf( $dstPattern, $i ) );
+				}
+			}
+		}
 
 		$removed = $this->removeBadFile( $dstPath, $retval );
 

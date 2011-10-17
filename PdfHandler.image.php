@@ -26,7 +26,7 @@
 
 class PdfImage {
 
-	const BUFSIZE = 2048;
+	const BUFSIZE = 0x10000;
 
 	function __construct( $filename ) {
 		$this->mFilename = $filename;
