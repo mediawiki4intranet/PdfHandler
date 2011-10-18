@@ -233,19 +233,17 @@ class PdfHandler extends ImageHandler {
 			return $image->pdfMetaArray;
 		}
 
-		$metadata = $image->getMetadata();
+		wfProfileIn( __METHOD__ );
+		$metadata = $this->isMetadataValid( $image, $image->getMetadata() );
+		wfProfileOut( __METHOD__ );
 
-		if ( !$this->isMetadataValid( $image, $metadata ) ) {
+		if ( !$metadata ) {
+			$image->purgeCache();
 			wfDebug( "Pdf metadata is invalid or missing, should have been fixed in upgradeRow\n" );
 			return false;
 		}
 
-		wfProfileIn( __METHOD__ );
-		wfSuppressWarnings();
-		$image->pdfMetaArray = unserialize( $metadata );
-		wfRestoreWarnings();
-		wfProfileOut( __METHOD__ );
-
+		$image->pdfMetaArray = $metadata;
 		return $image->pdfMetaArray;
 	}
 
@@ -269,7 +267,13 @@ class PdfHandler extends ImageHandler {
 	}
 
 	function isMetadataValid( $image, $metadata ) {
-		return !empty( $metadata ) && $metadata != serialize( array() );
+		wfSuppressWarnings();
+		$metadata = unserialize( $metadata );
+		wfRestoreWarnings();
+		if ( !empty( $metadata ) && ( empty( $metadata['pages'] ) || !empty( $metadata['pages'][0] ) ) ) {
+			return $metadata;
+		}
+		return NULL;
 	}
 
 	function pageCount( $image ) {
