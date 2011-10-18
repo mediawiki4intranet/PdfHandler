@@ -172,16 +172,11 @@ class PdfHandler extends ImageHandler {
 
 		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
 
-		$doRename = false;
-		$dst = str_replace( '$N', '%d', $dstPath );
-		if ( strlen( $dst ) > 255 ) {
-			# GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes
-			# Workaround it by renaming files from temporary directory
-			$dst = tempnam( wfTempDir(), 'pdf-' );
-			if ( $endpage > $page ) {
-				$dst .= '%d';
-			}
-			$doRename = true;
+		# GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes.
+		# Sometimes even when it's shorter. Workaround it by always moving files from temporary directory.
+		$dst = tempnam( wfTempDir(), 'pdf-' );
+		if ( $endpage > $page ) {
+			$dst .= '%d';
 		}
 		$cmd = "$wgPdfProcessor -dUseCropBox -dTextAlphaBits=4 -dGraphicsAlphaBits=4".
 			" -sDEVICE=$wgPdfOutputDevice " . wfEscapeShellArg( "-sOutputFile=$dst" ) .
@@ -194,13 +189,11 @@ class PdfHandler extends ImageHandler {
 		$err = wfShellExec( $cmd, $retval );
 		wfProfileOut( 'PdfHandler' );
 
-		if ( $doRename ) {
-			# Second part of GhostScript workaround
-			for ( $i = $page; $i <= $endpage; $i++ ) {
-				$tmp = sprintf( $dst, $i );
-				if ( file_exists( $tmp ) ) {
-					rename( $tmp, str_replace( '$N', $i, $dstPath ) );
-				}
+		# Second part of GhostScript workaround
+		for ( $i = $page; $i <= $endpage; $i++ ) {
+			$tmp = sprintf( $dst, $i );
+			if ( file_exists( $tmp ) ) {
+				rename( $tmp, str_replace( '$N', $i, $dstPath ) );
 			}
 		}
 
