@@ -1,0 +1,24 @@
+Fixes pdfinfo to respect page rotation.
+
+--- pdfinfo.cc	2010-12-27 23:44:28.000000000 +0300
++++ pdfinfo.cc	2011-10-20 14:49:23.501758750 +0400
+@@ -111,6 +111,8 @@ int main(int argc, char *argv[]) {
+   int exitCode;
+   int pg, i;
+   GBool multiPage;
++  int r;
++  double xchg;
+ 
+   exitCode = 99;
+ 
+@@ -232,6 +234,10 @@ int main(int argc, char *argv[]) {
+   for (pg = firstPage; pg <= lastPage; ++pg) {
+     w = doc->getPageCropWidth(pg);
+     h = doc->getPageCropHeight(pg);
++    r = doc->getPageRotate(pg);
++    if ((r != 0) && ((r % 180) != 0)) {
++      xchg = h; h = w; w = xchg;
++    }
+     if (multiPage) {
+       printf("Page %4d size: %g x %g pts", pg, w, h);
+     } else {

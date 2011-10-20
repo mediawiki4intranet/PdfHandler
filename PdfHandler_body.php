@@ -2,8 +2,7 @@
 /**
  * Copyright © 2007 Martin Seidel (Xarax) <jodeldi@gmx.de>
  * Modified by Vitaliy Filippov (2011):
- *   antialiasing, respect page rotation, page links, multiple page thumbnails
- *
+ *   antialiasing, page links, multiple page thumbnails
  * Inspired by djvuhandler from Tim Starling
  * Modified and written by Xarax
  *
@@ -54,12 +53,12 @@ class PdfThumbnailImage extends ThumbnailImage {
 class PdfHandler extends ImageHandler {
 
 	function isEnabled() {
-		global $wgPdfProcessor;
+		global $wgPdfProcessor, $wgPdfInfo;
 
-		if ( !isset( $wgPdfProcessor ) ) {
+		if ( empty( $wgPdfProcessor ) || empty( $wgPdfInfo ) ) {
 			wfDebug( "PdfHandler is disabled, please set the following\n" );
 			wfDebug( "variables in LocalSettings.php:\n" );
-			wfDebug( "\$wgPdfProcessor\n" );
+			wfDebug( "\$wgPdfProcessor, \$wgPdfInfo\n" );
 			return false;
 		}
 		return true;
@@ -263,7 +262,7 @@ class PdfHandler extends ImageHandler {
 		wfSuppressWarnings();
 		$metadata = unserialize( $metadata );
 		wfRestoreWarnings();
-		if ( !empty( $metadata ) && ( empty( $metadata['pages'] ) || !empty( $metadata['pages'][0] ) ) ) {
+		if ( !empty( $metadata ) && ( empty( $metadata['pages'] ) || empty( $metadata['pages'][0] ) ) ) {
 			return $metadata;
 		}
 		return NULL;

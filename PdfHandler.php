@@ -4,7 +4,7 @@
  *
  * @file
  * @ingroup Extensions
- * @author Martin Seidel (Xarax) <jodeldi@gmx.de>
+ * @author Martin Seidel (Xarax) <jodeldi@gmx.de>, Vitaliy Filippov (vitalif) <vitalif@yourcmc.ru>
  * @copyright Copyright © 2007 Martin Seidel (Xarax) <jodeldi@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,13 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
+#########################################################################
+# WARNING: pdfinfo does not respect page rotation, so if you don't want #
+# to see ugly thumbnails with incorrect aspect ratio on landscape PDFs, #
+# you must build your own poppler-utils with "poppler-utils.diff" patch #
+# applied.                                                              #
+#########################################################################
+
 # Not a valid entry point, skip unless MEDIAWIKI is defined
 if ( !defined( 'MEDIAWIKI' ) ) {
 	echo 'PdfHandler extension';
@@ -32,13 +39,14 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 $wgExtensionCredits['media'][] = array(
 	'path' => __FILE__,
 	'name' => 'PDF Handler',
-	'author' => array( 'Martin Seidel', 'Mike Połtyn'),
+	'author' => array( 'Martin Seidel', 'Mike Połtyn', 'Vitaliy Filippov' ),
 	'descriptionmsg' => 'pdf-desc',
 	'url' => 'http://www.mediawiki.org/wiki/Extension:PdfHandler',
 );
 
 // External program requirements...
 if ( !isset( $wgPdfProcessor ) ) $wgPdfProcessor = 'gs';
+if ( !isset( $wgPdfInfo ) ) $wgPdfInfo = 'pdfinfo';
 if ( !isset( $wgPdftoText ) ) $wgPdftoText = 'pdftotext';
 
 // GhostScript's output device name and file extension
