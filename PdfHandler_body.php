@@ -104,7 +104,7 @@ class PdfHandler extends ImageHandler {
 	function parseParamString( $str ) {
 		$m = false;
 
-		if ( preg_match( '/^page(\d+|\$N)-(\d+)px$/', $str, $m ) ) {
+		if ( preg_match( '/^page(\d+)-(\d+)px$/', $str, $m ) ) {
 			return array( 'width' => $m[2], 'page' => $m[1] );
 		}
 
@@ -150,7 +150,8 @@ class PdfHandler extends ImageHandler {
 			if ( $endpage === '' ) {
 				$endpage = $n;
 			}
-			$dstUrl = str_replace( 'page%24N', 'page$N', $dstUrl );
+			$dstPath = preg_replace( '/page\d+-/', 'page$N-', $dstPath );
+			$dstUrl = preg_replace( '/page\d+-/', 'page$N-', $dstUrl );
 		} else {
 			$endpage = $page;
 		}
