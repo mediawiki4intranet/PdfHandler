@@ -93,7 +93,10 @@ class PdfHandler extends ImageHandler {
 			return false;
 		}
 		if ( strpos( $page, '-' ) !== false ) {
-			$page = '$N';
+			list( $page, $endpage ) = explode( '-', $page, 2 );
+			if( !$page ) {
+				$page = 1;
+			}
 		}
 		return "page{$page}-{$params['width']}px";
 	}
