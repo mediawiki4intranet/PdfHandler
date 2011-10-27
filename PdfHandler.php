@@ -45,23 +45,22 @@ $wgExtensionCredits['media'][] = array(
 );
 
 // External program requirements...
-if ( !isset( $wgPdfProcessor ) ) $wgPdfProcessor = 'gs';
-if ( !isset( $wgPdfInfo ) ) $wgPdfInfo = 'pdfinfo';
-if ( !isset( $wgPdftoText ) ) $wgPdftoText = 'pdftotext';
+$wgPdfProcessor     = 'gs';
+$wgPdfInfo          = 'pdfinfo';
+$wgPdftoText        = 'pdftotext';
 
-// GhostScript's output device name and file extension
-if ( !isset( $wgPdfOutputDevice ) ) $wgPdfOutputDevice = 'jpeg';
-if ( !isset( $wgPdfOutputExtension ) ) $wgPdfOutputExtension = 'jpg';
+$wgPdfOutputDevice = 'jpeg';
+$wgPdfOutputExtension = 'jpg';
 
 // Now PdfHandler selects output DPI by itself, based on requested image size
 // If you want more quality, specify a power of 2 here.
 // Generated images will be downscaled by browser.
-if ( !isset( $wgPdfDpiRatio ) ) $wgPdfDpiRatio = 2;
+$wgPdfDpiRatio = 1;
 
 // This setting, if enabled, will put creating thumbnails into a job queue,
 // so they do not have to be created on-the-fly,
 // but rather inconspicuously during normal wiki browsing
-if ( !isset( $wgPdfCreateThumbnailsInJobQueue ) ) $wgPdfCreateThumbnailsInJobQueue = false;
+$wgPdfCreateThumbnailsInJobQueue = false;
 
 // Enable PDF upload by default. If you want to forbid PDF upload - do so in your LocalSettings.php
 $wgFileExtensions[] = 'pdf';
