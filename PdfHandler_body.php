@@ -98,7 +98,10 @@ class PdfHandler extends ImageHandler {
 				$page = 1;
 			}
 		}
-		return "page{$page}-{$params['width']}px";
+		// Reserve space for page number, so that thumbnail filename length
+		// won't depend on it, and we don't get inconsistent filenames if
+		// MW will cut it to be shorter than 256 characters (filesystem limit).
+		return 'page'.sprintf("%04d", $page).'-'.$params['width'].'px';
 	}
 
 	function parseParamString( $str ) {
@@ -203,7 +206,7 @@ class PdfHandler extends ImageHandler {
 		$removed = false;
 		for ( $i = $page; $i <= $endpage; $i++ ) {
 			$tmp = sprintf( $dst, $i-$page+1 );
-			$real = str_replace( '$N', $i, $dstPath );
+			$real = str_replace( '$N', sprintf( "%04d", $i ), $dstPath );
 			if ( file_exists( $tmp ) ) {
 				rename( $tmp, $real );
 			}
