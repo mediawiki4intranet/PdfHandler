@@ -44,7 +44,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 			$html = '';
 			$urlpattern = $this->url;
 			for( $this->page = $this->startpage; $this->page <= $this->endpage; $this->page++ ) {
-				$this->url = str_replace( '$N', $this->page, $urlpattern );
+				$this->url = str_replace( '$N', sprintf( "%04d", $this->page ), $urlpattern );
 				$html .= parent::toHtml( $options )."\n";
 			}
 			$this->url = $urlpattern;
