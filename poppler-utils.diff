@@ -1,4 +1,5 @@
-Fixes pdfinfo to respect page rotation.
+Dirty hack for pdfinfo & page rotation problem.
+Not needed for poppler-utils >= 0.20.
 
 --- pdfinfo.cc	2010-12-27 23:44:28.000000000 +0300
 +++ pdfinfo.cc	2011-10-20 14:49:23.501758750 +0400
