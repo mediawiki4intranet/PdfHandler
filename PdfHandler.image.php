@@ -57,12 +57,25 @@ class PdfImage {
 		}
 
 		if ( $o ) {
+			if( isset( $data['pages'][$page]['Page rot'] ) ) {
+				$r = $data['pages'][$page]['Page rot'];
+			} elseif( isset( $data['Page rot'] ) ) {
+				$r = $data['Page rot'];
+			} else {
+				$r = 0;
+			}
 			$size = explode( 'x', $o, 2 );
 
 			if ( $size ) {
 				$width  = intval( trim( $size[0] ) );
 				$height = explode( ' ', trim( $size[1] ), 2 );
 				$height = intval( trim( $height[0] ) );
+				if ( ( $r/90 ) & 1 ) {
+					// Swap width and height for landscape pages
+					$t = $width;
+					$width = $height;
+					$height = $t;
+				}
 
 				return array(
 					'width' => $width,
@@ -127,8 +140,10 @@ class PdfImage {
 				$key = trim( $bits[0] );
 				$value = trim( $bits[1] );
 				$matches = array();
-				if( preg_match( '/^Page +(\d+) size$/', $key, $matches ) ) {
-					$data['pages'][$matches[1]]['Page size'] = $value;
+				// "Page xx rot" will be in poppler 0.20's pdfinfo output
+				// See https://bugs.freedesktop.org/show_bug.cgi?id=41867
+				if( preg_match( '/^Page +(\d+) (size|rot)$/', $key, $matches ) ) {
+					$data['pages'][$matches[1]][$matches[2] == 'size' ? 'Page size' : 'Page rot'] = $value;
 				} else {
 					$data[$key] = $value;
 				}
