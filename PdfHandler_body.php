@@ -223,6 +223,27 @@ class PdfHandler extends ImageHandler {
 		}
 	}
 
+	function verifyUpload( $fileName, $destName, $fileProps ) {
+		global $wgPdfCreateThumbnailsInJobQueue;
+		if ( $wgPdfCreateThumbnailsInJobQueue ) {
+			$title = Title::makeTitleSafe( NS_FILE, $destName );
+			$metadata = $fileProps['metadata'];
+			$unserialized = unserialize( $metadata );
+			$pages = intval( $unserialized['Pages'] );
+			$jobs = array();
+			for ($i = 1; $i <= $pages; $i++) {
+				$jobs[] = new CreatePdfThumbnailsJob( $title,
+					array( 'page' => $i, 'jobtype' => CreatePdfThumbnailsJob::BIG_THUMB )
+				);
+				$jobs[] = new CreatePdfThumbnailsJob( $title,
+					array( 'page' => $i, 'jobtype' => CreatePdfThumbnailsJob::SMALL_THUMB )
+				);
+			}
+			Job::batchInsert( $jobs );
+		}
+		return parent::verifyUpload( $fileName, $destName, $fileProps );
+	}
+
 	function getPdfImage( $image, $path ) {
 		if ( !$image ) {
 			$pdfimg = new PdfImage( $path );

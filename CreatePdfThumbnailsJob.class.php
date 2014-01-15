@@ -86,38 +86,4 @@ class CreatePdfThumbnailsJob extends Job {
 
 		return true;
 	}
-
-
-	public static function insertJobs( $upload, $mime, &$error ) {
-		global $wgPdfCreateThumbnailsInJobQueue;
-		if ( !$wgPdfCreateThumbnailsInJobQueue ) {
-			return true;
-		}
-		if (!MimeMagic::singleton()->isMatchingExtension('pdf', $mime)) {
-			return true; // not a PDF, abort
-		}
-
-		$title = $upload->getTitle();
-		$uploadFile = $upload->getLocalFile();
-		if ( is_null($uploadFile) ) {
-			wfDebugLog('thumbnails', '$uploadFile seems to be null, should never happen...');
-			return true; // should never happen, but it's better to be secure
-		}
-
-		$metadata = $uploadFile->getMetadata();
-		$unserialized = unserialize( $metadata );
-		$pages = intval( $unserialized['Pages'] );
-
-		$jobs = array();
-		for ($i = 1; $i <= $pages; $i++) {
-			$jobs[] = new CreatePdfThumbnailsJob( $title, 
-								array( 'page' => $i, 'jobtype' => self::BIG_THUMB )
-							);
-			$jobs[] = new CreatePdfThumbnailsJob( $title, 
-								array( 'page' => $i, 'jobtype' => self::SMALL_THUMB )
-							);
-		}
-		Job::batchInsert( $jobs );
-		return true;
-	}
 }
