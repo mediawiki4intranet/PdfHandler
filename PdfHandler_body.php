@@ -134,7 +134,7 @@ class PdfHandler extends ImageHandler {
 	}
 
 	function doTransform( $image, $dstPath, $dstUrl, $params, $flags = 0 ) {
-		global $wgPdfProcessor, $wgPdfOutputDevice, $wgPdfDpiRatio;
+		global $wgPdfProcessor, $wgPdfOutputDevice, $wgPdfDpiRatio, $wgVersion;
 
 		$metadata = $image->getMetadata();
 
@@ -170,7 +170,7 @@ class PdfHandler extends ImageHandler {
 
 		$width = $params['width'];
 		$height = $params['height'];
-		$srcPath = $image->getPath();
+		$srcPath = version_compare( $wgVersion, '1.19', '>=' ) ? $image->getLocalRefPath() : $image->getPath();
 
 		if ( $flags & self::TRANSFORM_LATER ) {
 			return new PdfThumbnailImage( $image, $dstUrl, $width,
