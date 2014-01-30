@@ -193,7 +193,7 @@ class PdfHandler extends ImageHandler {
 		}
 		$cmd = "$wgPdfProcessor -dUseCropBox -dTextAlphaBits=4 -dGraphicsAlphaBits=4".
 			" -sDEVICE=$wgPdfOutputDevice " . wfEscapeShellArg( "-sOutputFile=$dst" ) .
-			" -dFirstPage=$page -dLastPage=$endpage -r$dpi -dSAFER -dBATCH -dNOPAUSE -q " .
+			" -dFirstPage=".intval( $page )." -dLastPage=".intval( $endpage )." -r$dpi -dSAFER -dBATCH -dNOPAUSE -q " .
 			wfEscapeShellArg( $srcPath ) . " 2>&1";
 
 		wfProfileIn( 'PdfHandler' );
