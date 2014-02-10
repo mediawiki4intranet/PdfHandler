@@ -101,7 +101,7 @@ class PdfHandler extends ImageHandler {
 		// Reserve space for page number, so that thumbnail filename length
 		// won't depend on it, and we don't get inconsistent filenames if
 		// MW will cut it to be shorter than 256 characters (filesystem limit).
-		return 'page'.sprintf("%04d", $page).'-'.$params['width'].'px';
+		return 'page'.sprintf( "%04d", $page ).'-'.$params['width'].'px';
 	}
 
 	function parseParamString( $str ) {
@@ -153,7 +153,6 @@ class PdfHandler extends ImageHandler {
 			if ( $endpage === '' ) {
 				$endpage = $n;
 			}
-			$dstPath = preg_replace( '/page\d+-/', 'page$N-', $dstPath );
 			$dstUrl = preg_replace( '/page\d+-/', 'page$N-', $dstUrl );
 		} else {
 			$endpage = $page;
@@ -203,14 +202,21 @@ class PdfHandler extends ImageHandler {
 		wfProfileOut( 'PdfHandler' );
 
 		// Move files from temporary directory to the destination
+		// Rename first file
+		if ( file_exists( sprintf( $dst, 1 ) ) ) {
+			rename( sprintf( $dst, 1 ), $dstPath );
+		}
+		// quickImport other files directly to thumbnail path of repository
 		$removed = false;
-		for ( $i = $page; $i <= $endpage; $i++ ) {
+		$dstPath = preg_replace( '/page\d+-/', 'page$N-', $image->thumbName( $params ) );
+		for ( $i = $page+1; $i <= $endpage; $i++ ) {
 			$tmp = sprintf( $dst, $i-$page+1 );
 			$real = str_replace( '$N', sprintf( "%04d", $i ), $dstPath );
-			if ( file_exists( $tmp ) ) {
-				rename( $tmp, $real );
-			}
-			$removed = $removed || $this->removeBadFile( $real, $retval );
+			$status = $image->repo->quickImport( $tmp, $image->getThumbPath( $real ), $image->getThumbDisposition( $real ) );
+			$removed = $removed || !$status->isOK();
+			wfSuppressWarnings();
+			unlink( $tmp );
+			wfRestoreWarnings();
 		}
 
 		if ( $retval != 0 || $removed ) {
