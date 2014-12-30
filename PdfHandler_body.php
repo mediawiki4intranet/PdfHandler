@@ -34,6 +34,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 	}
 
 	function toHtml( $options = array() ) {
+		$this->responsiveUrls = array();
 		if( !empty( $options['file-link'] ) ) {
 			// Link the thumbnail to an individual PDF page
 			$options['custom-url-link'] = $this->file->getURL() . '#page=' . $this->page;
