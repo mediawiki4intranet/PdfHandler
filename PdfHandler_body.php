@@ -1,11 +1,8 @@
 <?php
 /**
  * Copyright © 2007 Martin Seidel (Xarax) <jodeldi@gmx.de>
- *
+ * Copyright © 2011+ Vitaliy Filippov <vitalif@yourcmc.ru>
  * Inspired by djvuhandler from Tim Starling
- * Modified and written by Xarax
- * Modified by Vitaliy Filippov (2011):
- *   antialiasing, page links, multiple page thumbnails
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +41,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 			// for embedding presentations on wiki pages
 			$html = '';
 			$urlpattern = $this->url;
+			$urlpattern = preg_replace('/page\d+-/', 'page$N-', $urlpattern);
 			for( $this->page = $this->startpage; $this->page <= $this->endpage; $this->page++ ) {
 				$this->url = str_replace( '$N', sprintf( "%04d", $this->page ), $urlpattern );
 				$html .= parent::toHtml( $options )."\n";
@@ -59,12 +57,12 @@ class PdfThumbnailImage extends ThumbnailImage {
 class PdfHandler extends ImageHandler {
 
 	function isEnabled() {
-		global $wgPdfProcessor, $wgPdfInfo;
+		global $wgPdfToCairo, $wgPdfInfo;
 
-		if ( empty( $wgPdfProcessor ) || empty( $wgPdfInfo ) ) {
+		if ( empty( $wgPdfToCairo ) || empty( $wgPdfInfo ) ) {
 			wfDebug( "PdfHandler is disabled, please set the following\n" );
 			wfDebug( "variables in LocalSettings.php:\n" );
-			wfDebug( "\$wgPdfProcessor, \$wgPdfInfo\n" );
+			wfDebug( "\$wgPdfToCairo, \$wgPdfInfo\n" );
 			return false;
 		}
 		return true;
@@ -135,7 +133,7 @@ class PdfHandler extends ImageHandler {
 	}
 
 	function doTransform( $image, $dstPath, $dstUrl, $params, $flags = 0 ) {
-		global $wgPdfProcessor, $wgPdfOutputDevice, $wgPdfDpiRatio, $wgVersion;
+		global $wgPdfToCairo, $wgPdfOutputFormat, $wgVersion;
 
 		$metadata = $image->getMetadata();
 
@@ -154,7 +152,6 @@ class PdfHandler extends ImageHandler {
 			if ( $endpage === '' ) {
 				$endpage = $n;
 			}
-			$dstUrl = preg_replace( '/page\d+-/', 'page$N-', $dstUrl );
 		} else {
 			$endpage = $page;
 		}
@@ -181,20 +178,15 @@ class PdfHandler extends ImageHandler {
 			return $this->doThumbError( $width, $height, 'thumbnail_dest_directory' );
 		}
 
-		$dpi = $wgPdfDpiRatio * $this->getPageDPIForWidth( $image, $page, $width );
+		$dpi = $this->getPageDPIForWidth( $image, $page, $width );
+		$page = intval($page);
+		$endpage = intval($endpage);
 
-		// GhostScript fails (sometimes even crashes) if output filename length is > 255 bytes.
-		// Sometimes even when it's shorter. Workaround it by generating files in temporary directory.
-		// Also, filenames include the sequence number of generated image, not the page number.
-		$dst = tempnam( wfTempDir(), 'pdf-' );
-		unlink( $dst );
-		if ( $endpage > $page ) {
-			$dst .= '%d';
-		}
-		$cmd = "$wgPdfProcessor -dUseCropBox -dTextAlphaBits=4 -dGraphicsAlphaBits=4".
-			" -sDEVICE=$wgPdfOutputDevice " . wfEscapeShellArg( "-sOutputFile=$dst" ) .
-			" -dFirstPage=".intval( $page )." -dLastPage=".intval( $endpage )." -r$dpi -dSAFER -dBATCH -dNOPAUSE -q " .
-			wfEscapeShellArg( $srcPath ) . " 2>&1";
+		// Generate files in temporary directory
+		$dst = tempnam(wfTempDir(), 'pdf-');
+		unlink($dst);
+		$cmd = $wgPdfToCairo.' '.($wgPdfOutputFormat == 'png' ? '-png' : '-jpeg').' -r '.$dpi.
+			' -f '.$page.' -l '.$endpage.' '.wfEscapeShellArg($srcPath).' '.wfEscapeShellArg($dst);
 
 		wfProfileIn( 'PdfHandler' );
 		wfDebug( __METHOD__ . ": $cmd\n" );
@@ -203,16 +195,17 @@ class PdfHandler extends ImageHandler {
 		wfProfileOut( 'PdfHandler' );
 
 		// Move files from temporary directory to the destination
-		// Rename first file
-		if ( file_exists( sprintf( $dst, 1 ) ) ) {
-			rename( sprintf( $dst, 1 ), $dstPath );
+		$dst .= '-%0'.strlen($n).'d.'.($wgPdfOutputFormat == 'png' ? 'png' : 'jpg');
+		// Rename (move) first file
+		if ( file_exists( $tmp = sprintf( $dst, $page ) ) ) {
+			rename( $tmp, $dstPath );
 		}
 		// quickImport other files directly to thumbnail path of repository
 		$removed = false;
-		$dstPath = preg_replace( '/page\d+-/', 'page$N-', $image->thumbName( $params ) );
+		$destPattern = preg_replace( '/page\d+-/', 'page$N-', $image->thumbName( $params ) );
 		for ( $i = $page+1; $i <= $endpage; $i++ ) {
-			$tmp = sprintf( $dst, $i-$page+1 );
-			$real = str_replace( '$N', sprintf( "%04d", $i ), $dstPath );
+			$tmp = sprintf( $dst, $i );
+			$real = str_replace( '$N', sprintf( "%04d", $i ), $destPattern );
 			$status = $image->repo->quickImport( $tmp, $image->getThumbPath( $real ), $image->getThumbDisposition( $real ) );
 			$removed = $removed || !$status->isOK();
 			wfSuppressWarnings();
@@ -266,14 +259,10 @@ class PdfHandler extends ImageHandler {
 	}
 
 	function getThumbType( $ext, $mime, $params = null ) {
-		global $wgPdfOutputExtension;
-		static $mime;
-
-		if ( !isset( $mime ) ) {
-			$magic = MimeMagic::singleton();
-			$mime = $magic->guessTypesForExtension( $wgPdfOutputExtension );
-		}
-		return array( $wgPdfOutputExtension, $mime );
+		global $wgPdfOutputFormat;
+		$ext = $wgPdfOutputFormat == 'png' ? 'png' : 'jpg';
+		$mime = $wgPdfOutputFormat == 'png' ? 'image/png' : 'image/jpeg';
+		return array( $ext, $mime );
 	}
 
 	function getMetadata( $image, $path ) {

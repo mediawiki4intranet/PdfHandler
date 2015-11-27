@@ -1,11 +1,12 @@
 <?php
 /**
- * PDF Handler extension -- handler for viewing PDF files in image mode.
+ * PDF Handler extension -- handler for viewing PDF files in image mode,
+ *   using Poppler library command-line tools (pdftocairo, pdfinfo, pdftotext)
  *
  * @file
  * @ingroup Extensions
  * @author Martin Seidel (Xarax) <jodeldi@gmx.de>, Vitaliy Filippov (vitalif) <vitalif@yourcmc.ru>
- * @copyright Copyright © 2007 Martin Seidel (Xarax) <jodeldi@gmx.de>
+ * @copyright Copyright © 2007 Martin Seidel (Xarax), © 2011+ Vitaliy Filippov
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +24,15 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#########################################################################
-# WARNING: pdfinfo does not respect page rotation, so if you don't want #
-# to see ugly thumbnails with incorrect aspect ratio on landscape PDFs, #
-# you must build your own poppler-utils with "poppler-utils.diff" patch #
-# applied.                                                              #
-#########################################################################
+# WARNING: pdfinfo prior to 0.20 does not respect page rotation, so if you don't
+# want to see ugly thumbnails with incorrect aspect ratio on landscape PDFs,
+# you must build your own poppler-utils with "poppler-utils.diff" patch applied.
+
+# WARNING 2: you should set abbrvThreshold of your $wgLocalFileRepo to 235 or lower
+# when using PdfHandler to limit thumbnail filenames to 255 characters which is
+# common filesystem filename limit, i.e. you might otherwise get thumbnail generation
+# errors on PDFs with very long names. Search includes/DefaultSettings.php in your
+# MediaWiki installation for "$wgLocalFileRepo" for more information.
 
 # Not a valid entry point, skip unless MEDIAWIKI is defined
 if ( !defined( 'MEDIAWIKI' ) ) {
@@ -38,6 +42,7 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 
 $wgExtensionCredits['media'][] = array(
 	'path' => __FILE__,
+	'version' => '2015-11-27',
 	'name' => 'PDF Handler',
 	'author' => array( 'Martin Seidel', 'Mike Połtyn', 'Vitaliy Filippov' ),
 	'descriptionmsg' => 'pdf-desc',
@@ -45,17 +50,11 @@ $wgExtensionCredits['media'][] = array(
 );
 
 // External program requirements...
-$wgPdfProcessor     = 'gs';
-$wgPdfInfo          = 'pdfinfo';
-$wgPdftoText        = 'pdftotext';
+$wgPdfToCairo = 'pdftocairo';
+$wgPdfInfo = 'pdfinfo';
+$wgPdftoText = 'pdftotext';
 
-$wgPdfOutputDevice = 'jpeg';
-$wgPdfOutputExtension = 'jpg';
-
-// Now PdfHandler selects output DPI by itself, based on requested image size
-// If you want more quality, specify a power of 2 here.
-// Generated images will be downscaled by browser.
-$wgPdfDpiRatio = 1;
+$wgPdfOutputFormat = 'jpg';
 
 // This setting, if enabled, will put creating thumbnails into a job queue,
 // so they do not have to be created on-the-fly,
