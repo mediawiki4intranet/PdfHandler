@@ -39,7 +39,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 		if( $this->endpage > $this->startpage ) {
 			// Multiple thumbnails requested - useful, for example,
 			// for embedding presentations on wiki pages
-			$html = '';
+			$html = '<span class="pdfhandler">';
 			$urlpattern = $this->url;
 			$urlpattern = preg_replace('/page\d+-/', 'page$N-', $urlpattern);
 			for( $this->page = $this->startpage; $this->page <= $this->endpage; $this->page++ ) {
@@ -47,6 +47,7 @@ class PdfThumbnailImage extends ThumbnailImage {
 				$html .= parent::toHtml( $options )."\n";
 			}
 			$this->url = $urlpattern;
+			$html .= '</span>';
 			return $html;
 		}
 		return parent::toHtml( $options );
