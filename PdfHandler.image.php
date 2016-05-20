@@ -105,7 +105,7 @@ class PdfImage {
 		}
 
 		# Read text layer
-		if ( isset( $wgPdftoText ) ) {
+		if ( $wgPdftoText ) {
 			wfProfileIn( 'pdftotext' );
 			$cmd = wfEscapeShellArg( $wgPdftoText ) . ' '. wfEscapeShellArg( $this->mFilename ) . ' - ';
 			wfDebug( __METHOD__.": $cmd\n" );
