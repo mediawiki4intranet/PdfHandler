@@ -144,6 +144,10 @@ class PdfHandler extends ImageHandler {
 
 		$n = $this->pageCount( $image );
 		$page = isset( $params['page'] ) ? $params['page'] : 1;
+		if (is_numeric($page) && (intval($page)<0)) {
+			// If $page < 0 — set $page from end
+			$page = $n + 1 + intval($page);
+		}
 		$endpage = false;
 		if ( strpos( $page, '-' ) !== false ) {
 			list( $page, $endpage ) = explode( '-', $page, 2 );
